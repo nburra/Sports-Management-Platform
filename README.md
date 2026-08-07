@@ -1,151 +1,242 @@
-# Sports Management App
+# Sports Management Platform
 
-Database-driven web application for managing high school athletic programs. Built with Flask API, Streamlit frontend, and MySQL.
+A full-stack sports management platform designed to streamline athletic program operations through role-based workflows, centralized data management, and RESTful APIs.
 
-## Features
+Built using **Python, Flask, MySQL, Streamlit, Docker, and REST APIs**, the application enables coaches, athletes, recruiters, and athletic directors to efficiently manage teams, schedules, recruiting activities, and player performance.
 
-**User Roles:**
-- **Coach**: View strategies, schedules
-- **Athlete**: Manage stats, view schedules, track recruitment  
-- **Recruiter**: Search players by criteria (GPA, position, state), view rosters, schedule events
-- **Athletic Director**: Manage teams, coaches, practices
+---
 
-## Tech Stack
+# Business Problem
 
-**Backend:**
-- Flask + Flask-Login, Flask-MySQL
-- Python + python-dotenv, cryptography
-- 6 Blueprint modules organizing routes
+Managing athletic programs often requires coaches, recruiters, athletes, and administrators to coordinate information across multiple disconnected systems.
 
-**Frontend:**
-- Streamlit (20+ pages)
-- Pandas for data handling
-- HTTP requests to API
+Common challenges include:
 
-**Database:**
-- MySQL (13 normalized tables, 250 athletes, 40 coaches)
-- Docker Compose orchestration
+- Fragmented athlete and team information
+- Inefficient recruiting workflows
+- Manual schedule management
+- Limited visibility into player performance
+- Duplicate data entry across users
 
-## SQL Skills
+This project demonstrates how a centralized information system can improve operational efficiency by integrating all stakeholders into a single platform.
 
-**Database Design:**
-- Normalized schema with foreign keys
-- Junction tables for many-to-many relationships (AthleteEvent, AthleteRecruiter, etc.)
+---
 
-**Query Types Implemented:**
-- Multi-table JOINs for player stats and team info
-- Parameterized queries to prevent SQL injection
-- WHERE clauses with IN operators for multi-criteria filtering
-- INSERT/UPDATE/DELETE with transactions
-- ORDER BY for event sequencing
-- Conflict detection queries for schedule management
+# Solution
 
-**Example Queries:**
+Developed a role-based sports management platform that combines a relational database, REST API, and interactive web interface.
 
-Player search across multiple tables:
-```sql
-SELECT a.FirstName, a.LastName, a.Position, s.TotalPoints, s.PointsPerGame,
-       t.TeamName
-FROM Athlete a 
-JOIN AthleteStats s ON a.PlayerID = s.PlayerID
-JOIN Team t ON a.TeamID = t.TeamID
-WHERE a.FirstName = %s AND a.LastName = %s
-```
+The platform enables users to:
 
-Multi-criteria player filtering:
-```sql
-SELECT a.FirstName, a.LastName, a.Position, a.GPA, t.State
-FROM Athlete a 
-JOIN Team t ON a.TeamID = t.TeamID
-WHERE a.Gender = 'Male' AND t.State IN %s AND a.GPA > %s AND a.Position IN %s
-```
+- Manage teams and rosters
+- Track athlete statistics
+- Schedule games and practices
+- Coordinate recruiting events
+- Search athletes using multiple criteria
+- Maintain centralized program information
 
-Athletic Director practice view with team info:
-```sql
-SELECT p.PracticeID, p.DateTime, p.Location, t.TeamName
-FROM Practice p 
-JOIN Team t ON t.TeamID = p.TeamID 
-WHERE t.DirectorID = 131
-ORDER BY p.DateTime ASC
-```
+---
 
-## Setup
-
-```bash
-# Clone repo
-git clone <URL>
-cd HMS-Sports-App-main
-
-# Configure environment
-cd api
-cp .env.template .env
-# Edit .env with DB credentials
-
-# Install dependencies
-pip install -r ./api/requirements.txt
-pip install -r ./app/requirements.txt
-
-# Start services
-docker compose up -d
-
-# Access
-# Frontend: http://localhost:8501
-# API: http://localhost:4000
-# DB: localhost:3200
-```
-
-## API Endpoints
-
-**Recruiter Search** (`/r` prefix):
-- `GET /recruiter/player_criteria?State=FL&GPA=3.5&Position=Guard` - Search by criteria
-- `GET /recruiter/player_stats?first_name=Troy&last_name=Bolton` - Get stats
-- `GET /recruiter/roster?team=Wildcats` - View roster
-- `GET /recruiter/state_teams?state=Florida` - Teams by state
-- `POST /recruiter/event` - Schedule recruiting event
-- `DELETE /recruiter/event?EventID=1` - Cancel event
-
-**Athletic Director** (`/d` prefix):
-- `GET /athletic_director/teams` - Managed teams
-- `GET /athletic_director/practices` - View practices
-- `POST /athletic_director/practices` - Schedule practice
-- `DELETE /athletic_director/practices?PracticeID=1` - Cancel practice
-
-**Athlete Stats** (`/s` prefix):
-- `GET /athletestats` - All stats
-- `GET /athletestats/<id>` - Specific stats
-- `PUT /athletestats/<id>` - Update stats
-
-**Calendar** (`/cal` prefix):
-- `GET /calendar/practices` - Team practices
-- `GET /calendar/games` - Team games  
-- `GET /calendar/recruitingevents` - Recruiting events
-
-**Players** (`/a` prefix):
-- `GET /players` - All athletes
-- `GET /players/<id>` - Player info
-- `GET /players/schoolsofinterest` - Target schools
-- `DELETE /players/schoolsofinterest` - Remove school
-
-## Database Schema
-
-13 tables:
-- **Users**: Coach, AthleticDirector, Recruiter
-- **Teams**: Team, Strategies, CollegeTeam  
-- **Athletes**: Athlete, AthleteStats
-- **Events**: Game, Practice, RecruitingEvents
-- **Recruitment**: SchoolsOfInterest
-- **Associations**: AthleteEvent, AthleteRecruiter, AthleteInterestedSchools
-
-Foreign keys maintain referential integrity. 900+ line SQL seed with 250 athletes, 40 coaches, 20 directors.
-
-## Architecture
+# System Architecture
 
 ```
-Streamlit Frontend
-        ↓ HTTP/REST
-Flask API (6 Blueprints)
-        ↓ SQL
+             Users
+────────────────────────────────────
+ Coaches • Athletes • Recruiters •
+ Athletic Directors
+────────────────────────────────────
+              │
+              ▼
+      Streamlit Frontend
+              │
+         REST API Calls
+              │
+              ▼
+          Flask API
+      (Business Logic)
+              │
+         SQL Queries
+              │
+              ▼
+         MySQL Database
+```
+
+Docker Compose orchestrates the frontend, backend, and database services for consistent local deployment.
+
+---
+
+# Key Features
+
+## Role-Based Access
+
+The application supports multiple user roles with customized functionality.
+
+### Coach
+
+- View team schedules
+- Access team strategies
+- Monitor player performance
+
+### Athlete
+
+- View personal statistics
+- Track recruiting opportunities
+- Access schedules
+
+### Recruiter
+
+- Search athletes by GPA, position, location, and performance
+- View player profiles
+- Schedule recruiting events
+
+### Athletic Director
+
+- Manage teams
+- Schedule practices
+- Oversee athletic operations
+
+---
+
+# Database Design
+
+The platform is powered by a normalized relational database containing 13 interconnected tables.
+
+Core entities include:
+
+- Users
+- Athletes
+- Coaches
+- Teams
+- Athlete Statistics
+- Practices
+- Games
+- Recruiting Events
+- Schools of Interest
+
+The schema utilizes:
+
+- Primary and foreign keys
+- Junction tables
+- Referential integrity
+- Many-to-many relationships
+- Parameterized SQL queries
+
+---
+
+# REST API
+
+The backend exposes RESTful endpoints that allow the frontend to interact with the database.
+
+Example capabilities include:
+
+- Retrieve athlete information
+- Search players by multiple filters
+- Update statistics
+- Schedule practices
+- Manage recruiting events
+- View calendars
+- Manage rosters
+
+Business logic is separated from presentation through modular Flask Blueprints.
+
+---
+
+# Technologies
+
+## Programming
+
+- Python
+
+## Backend
+
+- Flask
+- Flask-Login
+- REST APIs
+
+## Database
+
+- MySQL
+- SQL
+- Relational Database Design
+
+## Frontend
+
+- Streamlit
+- Pandas
+
+## DevOps
+
+- Docker
+- Docker Compose
+
+---
+
+# Repository Structure
+
+```
+Sports-Management-App/
+
+│
+├── api/
+│
+├── app/
+│
+├── database-files/
+│
+├── docker-compose.yaml
+│
+└── README.md
+```
+
+---
+
+# Application Workflow
+
+```
+User Login
+      │
+      ▼
+Role Authentication
+      │
+      ▼
+Role-Specific Dashboard
+      │
+      ▼
+REST API Request
+      │
+      ▼
+Flask Business Logic
+      │
+      ▼
 MySQL Database
+      │
+      ▼
+Updated Dashboard
 ```
 
-Docker Compose runs all 3 services in separate containers with hot reloading.
+---
+
+# Skills Demonstrated
+
+- Business Systems Analysis
+- Relational Database Design
+- REST API Development
+- Full-Stack Application Development
+- Process Modeling
+- User Workflow Design
+
+---
+
+# Future Improvements
+
+Potential enhancements include:
+
+- Authentication using OAuth
+- Cloud deployment (AWS or Azure)
+- Real-time notifications
+- Team messaging
+- Mobile-responsive interface
+- Analytics dashboards for recruiting and player performance
+- AI-powered athlete matching and recruiting recommendations
+
+---
