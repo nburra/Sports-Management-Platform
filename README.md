@@ -40,7 +40,7 @@ The platform enables users to:
 # System Architecture
 
 ```
-             Users
+            Users
 ────────────────────────────────────
  Coaches • Athletes • Recruiters •
  Athletic Directors
